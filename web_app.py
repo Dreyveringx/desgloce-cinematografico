@@ -44,51 +44,60 @@ html, body, [class*="css"] {
     color: #C9A84C !important;
 }
 
-/* Header fijo: alineado al mismo ancho que el contenido de Streamlit */
-.app-header-fixed {
-    position: fixed;
-    top: 0;
-    z-index: 1000;
-    padding: 12px 0 10px 0;
-    box-sizing: border-box;
-    background: linear-gradient(180deg, #0d1117 88%, rgba(13, 17, 23, 0));
-    pointer-events: none;
+/* Header: ancho completo del área principal, sticky bajo la barra de Streamlit */
+section.main > div,
+section.main .block-container,
+[data-testid="stAppViewContainer"] .main {
+    overflow: visible !important;
+}
+section.main .block-container {
+    padding-top: 2rem !important;
+    max-width: 100% !important;
+}
+div[data-testid="stVerticalBlock"]:has(.app-header-outer),
+div[data-testid="stElementContainer"]:has(.app-header-outer),
+div[data-testid="stMarkdownContainer"]:has(.app-header-outer),
+[data-testid="stHtml"]:has(.app-header-outer) {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+.app-header-outer {
+    position: sticky;
+    top: 3.5rem;
+    z-index: 200;
+    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-}
-.app-header-fixed .app-header {
-    pointer-events: auto;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
+    margin: 0 0 1.5rem 0;
+    padding: 8px 0 12px 0;
     box-sizing: border-box;
-    overflow: hidden;
+    background: linear-gradient(180deg, #0d1117 88%, rgba(13, 17, 23, 0.92) 100%);
 }
-.app-header-spacer {
-    height: 120px;
-    width: 100%;
-    display: block;
-    flex-shrink: 0;
+.app-header-wrap {
+    width: min(1100px, 100%);
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
-
 .app-header {
     background: linear-gradient(135deg, #1B3A4B 0%, #12181f 92%);
     border: 1px solid #C9A84C40;
     border-radius: 12px;
-    padding: 18px 24px;
+    padding: 20px 28px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: center;
+    gap: 20px;
     box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     overflow: hidden;
 }
 .app-header-text {
-    flex: 1;
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
+    text-align: center;
 }
 .app-header h1 {
     font-size: clamp(1.35rem, 3.5vw, 2rem);
@@ -308,7 +317,7 @@ code {
     width: 56px; height: 22px;
     background: repeating-linear-gradient(-45deg, #1B3A4B, #1B3A4B 6px, #C9A84C 6px, #C9A84C 12px);
     border: 2px solid #C9A84C; border-radius: 4px 4px 0 0;
-    position: absolute; top: 6px; left: 8px;
+    position: absolute; top: 10px; left: 8px;
     transform-origin: left bottom;
     animation: clapper-snap 2.2s ease-in-out infinite;
 }
@@ -504,67 +513,24 @@ def render_header(anim=None):
         anim = get_header_animation()
     icon = _header_icon_html(anim)
     label = HEADER_ANIM_LABELS.get(anim, '')
-    st.markdown(
-        f"""
-    <div class="app-header-fixed">
-        <div class="app-header">
-            {icon}
-            <div class="app-header-text">
-                <h1>ScriptBreaker</h1>
-                <p>Desglose automático de guiones cinematográficos y teatrales</p>
-                <div class="header-status-label">{label}</div>
+    html = f"""
+    <div class="app-header-outer">
+        <div class="app-header-wrap">
+            <div class="app-header">
+                {icon}
+                <div class="app-header-text">
+                    <h1>ScriptBreaker</h1>
+                    <p>Desglose automático de guiones cinematográficos y teatrales</p>
+                    <div class="header-status-label">{label}</div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="app-header-spacer" aria-hidden="true"></div>
-    """,
-        unsafe_allow_html=True,
-    )
-    _align_fixed_header()
-
-
-def _align_fixed_header():
-    """Alinea el header fijo con el área principal (respeta sidebar abierta/cerrada)."""
-    import streamlit.components.v1 as components
-
-    components.html(
-        """
-        <script>
-        (function () {
-            const doc = window.parent.document;
-            function alignHeader() {
-                const bar = doc.querySelector('.app-header-fixed');
-                const container = doc.querySelector('section.main .block-container')
-                    || doc.querySelector('section.main [data-testid="stVerticalBlock"]')
-                    || doc.querySelector('section.main');
-                if (!bar || !container) return;
-                const r = container.getBoundingClientRect();
-                bar.style.left = r.left + 'px';
-                bar.style.width = r.width + 'px';
-                bar.style.right = 'auto';
-                bar.style.top = '0px';
-                bar.style.display = 'flex';
-                bar.style.justifyContent = 'center';
-                bar.style.boxSizing = 'border-box';
-                const spacer = doc.querySelector('.app-header-spacer');
-                if (spacer) {
-                    spacer.style.height = (bar.offsetHeight + 12) + 'px';
-                }
-            }
-            alignHeader();
-            window.parent.addEventListener('resize', alignHeader);
-            setInterval(alignHeader, 600);
-            const app = doc.querySelector('[data-testid="stAppViewContainer"]');
-            if (app) {
-                new MutationObserver(alignHeader).observe(app, {
-                    attributes: true, subtree: true, childList: true
-                });
-            }
-        })();
-        </script>
-        """,
-        height=0,
-    )
+    """
+    if hasattr(st, "html"):
+        st.html(html, width="stretch")
+    else:
+        st.markdown(html, unsafe_allow_html=True)
 
 
 def render_sidebar_instructions(step: int):
