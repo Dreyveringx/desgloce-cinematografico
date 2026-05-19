@@ -44,60 +44,67 @@ html, body, [class*="css"] {
     color: #C9A84C !important;
 }
 
-/* Header fijo: siempre visible al hacer scroll (sticky no funciona bien en Streamlit) */
+/* Header fijo: alineado al mismo ancho que el contenido de Streamlit */
 .app-header-fixed {
     position: fixed;
     top: 0;
-    left: 21rem;
-    right: 0;
     z-index: 1000;
-    padding: 10px 1.5rem 8px 1rem;
+    padding: 12px 0 10px 0;
     box-sizing: border-box;
-    background: linear-gradient(180deg, #0d1117 75%, rgba(13, 17, 23, 0));
+    background: linear-gradient(180deg, #0d1117 88%, rgba(13, 17, 23, 0));
     pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 .app-header-fixed .app-header {
     pointer-events: auto;
-    margin-bottom: 0;
-    max-width: 1200px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 .app-header-spacer {
-    height: 128px;
+    height: 120px;
     width: 100%;
     display: block;
     flex-shrink: 0;
-}
-@media (max-width: 768px) {
-    .app-header-fixed {
-        left: 0;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
 }
 
 .app-header {
     background: linear-gradient(135deg, #1B3A4B 0%, #12181f 92%);
     border: 1px solid #C9A84C40;
     border-radius: 12px;
-    padding: 20px 32px;
+    padding: 18px 24px;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+.app-header-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 .app-header h1 {
-    font-size: 2.2rem;
+    font-size: clamp(1.35rem, 3.5vw, 2rem);
     font-weight: 700;
     color: #C9A84C;
     margin: 0;
     letter-spacing: -0.5px;
+    line-height: 1.15;
+    overflow-wrap: break-word;
 }
 .app-header p {
     color: #8b949e;
     margin: 6px 0 0 0;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    overflow-wrap: break-word;
 }
 
 .card-title {
@@ -281,10 +288,14 @@ code {
 .step-text.done { color: #3fb950; }
 
 .header-icon-slot {
-    width: 80px; height: 80px; flex-shrink: 0;
+    width: 72px; height: 72px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
 }
-.header-icon-inner { width: 72px; height: 72px; position: relative; }
+.header-icon-inner {
+    width: 68px; height: 68px; position: relative;
+    overflow: hidden; flex-shrink: 0;
+}
 
 .header-icon--idle .clapper-base {
     width: 56px; height: 40px;
@@ -302,8 +313,9 @@ code {
     animation: clapper-snap 2.2s ease-in-out infinite;
 }
 .header-icon--idle .film-glow {
-    position: absolute; inset: -4px; border-radius: 50%;
+    position: absolute; inset: 0; border-radius: 50%;
     animation: glow-pulse 2.2s ease-in-out infinite;
+    pointer-events: none;
 }
 @keyframes clapper-snap {
     0%, 100% { transform: rotate(-12deg); }
@@ -424,6 +436,7 @@ code {
 .header-status-label {
     font-size: 0.7rem; color: #8b949e;
     text-transform: uppercase; letter-spacing: 1px; margin-top: 6px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -496,7 +509,7 @@ def render_header(anim=None):
     <div class="app-header-fixed">
         <div class="app-header">
             {icon}
-            <div>
+            <div class="app-header-text">
                 <h1>ScriptBreaker</h1>
                 <p>Desglose automático de guiones cinematográficos y teatrales</p>
                 <div class="header-status-label">{label}</div>
@@ -521,15 +534,21 @@ def _align_fixed_header():
             const doc = window.parent.document;
             function alignHeader() {
                 const bar = doc.querySelector('.app-header-fixed');
-                const main = doc.querySelector('section.main');
-                if (!bar || !main) return;
-                const r = main.getBoundingClientRect();
+                const container = doc.querySelector('section.main .block-container')
+                    || doc.querySelector('section.main [data-testid="stVerticalBlock"]')
+                    || doc.querySelector('section.main');
+                if (!bar || !container) return;
+                const r = container.getBoundingClientRect();
                 bar.style.left = r.left + 'px';
                 bar.style.width = r.width + 'px';
+                bar.style.right = 'auto';
                 bar.style.top = '0px';
+                bar.style.display = 'flex';
+                bar.style.justifyContent = 'center';
+                bar.style.boxSizing = 'border-box';
                 const spacer = doc.querySelector('.app-header-spacer');
                 if (spacer) {
-                    spacer.style.height = (bar.offsetHeight + 16) + 'px';
+                    spacer.style.height = (bar.offsetHeight + 12) + 'px';
                 }
             }
             alignHeader();
