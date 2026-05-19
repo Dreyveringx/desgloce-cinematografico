@@ -1,4 +1,4 @@
-# 🎬 ScriptBreaker Pro
+# 🎬 ScriptBreaker
 
 Herramienta de desglose automático de guiones cinematográficos y teatrales. Carga un PDF de guion y genera un Excel de producción con una pestaña por personaje, desglose por escenas, locaciones, EXT/INT, DÍA/NOC, vestuario (KBIO) y observaciones.
 

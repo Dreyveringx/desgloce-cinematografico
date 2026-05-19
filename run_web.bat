@@ -1,8 +1,8 @@
 @echo off
-title ScriptBreaker Pro — Web
+title ScriptBreaker — Web
 echo.
 echo ========================================
-echo   ScriptBreaker Pro — Modo Web
+echo   ScriptBreaker — Modo Web
 echo ========================================
 echo.
 pip install streamlit --quiet

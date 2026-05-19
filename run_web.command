@@ -1,7 +1,7 @@
 #!/bin/bash
 echo ""
 echo "========================================"
-echo "  ScriptBreaker Pro — Modo Web"
+echo "  ScriptBreaker — Modo Web"
 echo "========================================"
 echo ""
 pip3 install streamlit --quiet

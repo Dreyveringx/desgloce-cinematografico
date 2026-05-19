@@ -1,4 +1,4 @@
-SCRIPTBREAKER PRO — GUÍA DE INSTALACIÓN
+SCRIPTBREAKER — GUÍA DE INSTALACIÓN
 =========================================
 
 OPCIÓN 1 — SIN INSTALAR NADA (recomendada si ya tienes Python)

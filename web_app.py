@@ -9,12 +9,12 @@ ROOT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(ROOT_DIR))
 
 st.set_page_config(
-    page_title="ScriptBreaker Pro",
+    page_title="ScriptBreaker",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'About': "ScriptBreaker Pro — Desglose automático de guiones cinematográficos"
+        'About': "ScriptBreaker — Desglose automático de guiones cinematográficos"
     }
 )
 
@@ -255,7 +255,7 @@ def render_header():
     <div class="app-header">
         <div style="font-size:3rem;line-height:1">🎬</div>
         <div>
-            <h1>ScriptBreaker Pro</h1>
+            <h1>ScriptBreaker</h1>
             <p>Desglose automático de guiones cinematográficos y teatrales</p>
         </div>
     </div>

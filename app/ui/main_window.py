@@ -20,7 +20,7 @@ TEXT_SEC = "#888888"
 class MainWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("ScriptBreaker Pro")
+        self.title("ScriptBreaker")
         self.geometry("1180x740")
         self.minsize(900, 600)
         self.configure(fg_color=BG_MAIN)
@@ -76,7 +76,7 @@ class MainWindow(ctk.CTk):
         self.left.pack(side="left", fill="y", padx=12, pady=12)
         self.left.pack_propagate(False)
 
-        ctk.CTkLabel(self.left, text="🎬 ScriptBreaker Pro",
+        ctk.CTkLabel(self.left, text="🎬 ScriptBreaker",
                      font=ctk.CTkFont("Helvetica", 17, "bold"),
                      text_color=ACCENT).pack(pady=(22, 4))
         ctk.CTkLabel(self.left, text="Desglose de producción cinematográfica",

@@ -1,7 +1,7 @@
 #!/bin/bash
 echo ""
 echo "========================================"
-echo "  ScriptBreaker Pro"
+echo "  ScriptBreaker"
 echo "  Instalando dependencias..."
 echo "========================================"
 echo ""
@@ -15,7 +15,7 @@ fi
 echo "Instalando librerías necesarias..."
 pip3 install customtkinter pdfplumber openpyxl Pillow --quiet
 echo ""
-echo "Listo! Iniciando ScriptBreaker Pro..."
+echo "Listo! Iniciando ScriptBreaker..."
 echo ""
 cd "$(dirname "$0")"
 python3 main.py

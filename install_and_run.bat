@@ -1,8 +1,8 @@
 @echo off
-title ScriptBreaker Pro - Instalador
+title ScriptBreaker - Instalador
 echo.
 echo ========================================
-echo   ScriptBreaker Pro
+echo   ScriptBreaker
 echo   Instalando dependencias...
 echo ========================================
 echo.
@@ -19,7 +19,7 @@ if %errorlevel% neq 0 (
 echo Instalando librerias necesarias...
 pip install customtkinter pdfplumber openpyxl Pillow --quiet
 echo.
-echo Listo! Iniciando ScriptBreaker Pro...
+echo Listo! Iniciando ScriptBreaker...
 echo.
 cd /d "%~dp0"
 python main.py
