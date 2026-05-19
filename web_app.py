@@ -44,15 +44,28 @@ html, body, [class*="css"] {
     color: #C9A84C !important;
 }
 
+/* Permite que position: sticky funcione en Streamlit */
+section.main > div,
+.main .block-container,
+[data-testid="stAppViewContainer"] .main {
+    overflow: visible !important;
+}
+
 .app-header {
-    background: linear-gradient(135deg, #1B3A4B 0%, #0d1117 60%);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: linear-gradient(135deg, #1B3A4B 0%, #12181f 92%);
     border: 1px solid #C9A84C40;
     border-radius: 12px;
-    padding: 32px 40px;
+    padding: 24px 40px;
     margin-bottom: 28px;
     display: flex;
     align-items: center;
     gap: 20px;
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 .app-header h1 {
     font-size: 2.2rem;
