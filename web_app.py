@@ -286,24 +286,6 @@ def render_sidebar_instructions(step: int):
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.markdown("""
-        <div style="font-size:0.75rem;color:#8b949e;line-height:1.6">
-            <strong style="color:#C9A84C">Formatos soportados</strong><br>
-            Guiones en formato Hollywood estándar con cabeceras de escena tipo:<br>
-            <code>3 INT. LOCACIÓN - NOCHE</code>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("---")
-        st.markdown("""
-        <div style="font-size:0.78rem;color:#8b949e">
-            💻 <strong style="color:#e6edf3">Versión escritorio</strong><br>
-            Descarga el proyecto y ejecuta <code>install_and_run.bat</code> (Windows)
-            o <code>install_and_run.command</code> (Mac).
-        </div>
-        """, unsafe_allow_html=True)
-
 
 if 'step' not in st.session_state:
     st.session_state.step = 1
