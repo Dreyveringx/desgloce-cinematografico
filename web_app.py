@@ -246,20 +246,231 @@ code {
 }
 .step-text { font-size: 0.88rem; color: #8b949e; }
 .step-text.done { color: #3fb950; }
+
+.header-icon-slot {
+    width: 80px; height: 80px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.header-icon-inner { width: 72px; height: 72px; position: relative; }
+
+.header-icon--idle .clapper-base {
+    width: 56px; height: 40px;
+    background: linear-gradient(145deg, #2a4a5e, #1B3A4B);
+    border: 2px solid #C9A84C; border-radius: 4px;
+    position: absolute; bottom: 8px; left: 8px;
+    box-shadow: 0 0 24px #C9A84C40;
+}
+.header-icon--idle .clapper-top {
+    width: 56px; height: 22px;
+    background: repeating-linear-gradient(-45deg, #1B3A4B, #1B3A4B 6px, #C9A84C 6px, #C9A84C 12px);
+    border: 2px solid #C9A84C; border-radius: 4px 4px 0 0;
+    position: absolute; top: 6px; left: 8px;
+    transform-origin: left bottom;
+    animation: clapper-snap 2.2s ease-in-out infinite;
+}
+.header-icon--idle .film-glow {
+    position: absolute; inset: -4px; border-radius: 50%;
+    animation: glow-pulse 2.2s ease-in-out infinite;
+}
+@keyframes clapper-snap {
+    0%, 100% { transform: rotate(-12deg); }
+    45%, 55% { transform: rotate(4deg); }
+}
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 8px #C9A84C30; }
+    50% { box-shadow: 0 0 28px #C9A84C70; }
+}
+
+.header-icon--upload .upload-ring {
+    position: absolute; inset: 0;
+    border: 3px solid #30363d; border-top-color: #C9A84C;
+    border-radius: 50%; animation: sb-spin 0.9s linear infinite;
+}
+.header-icon--upload .upload-doc {
+    width: 28px; height: 36px; background: #161b22;
+    border: 2px solid #4A6FA5; border-radius: 3px;
+    position: absolute; left: 50%; top: 50%;
+    animation: doc-rise 1.2s ease-in-out infinite;
+}
+.header-icon--upload .upload-doc::after {
+    content: ''; display: block; width: 14px; height: 2px;
+    background: #4A6FA5; margin: 8px auto 0;
+    box-shadow: 0 5px 0 #4A6FA5, 0 10px 0 #4A6FA5;
+}
+@keyframes doc-rise {
+    0%, 100% { transform: translate(-50%, -42%); }
+    50% { transform: translate(-50%, -58%); }
+}
+@keyframes sb-spin { to { transform: rotate(360deg); } }
+
+.header-icon--analyze .script-page {
+    width: 44px; height: 52px; background: #161b22;
+    border: 2px solid #4A6FA5; border-radius: 4px;
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%); overflow: hidden;
+}
+.header-icon--analyze .script-line {
+    height: 3px; background: #30363d; margin: 6px 8px; border-radius: 2px;
+}
+.header-icon--analyze .script-line:nth-child(2) { width: 70%; }
+.header-icon--analyze .script-line:nth-child(3) { width: 90%; }
+.header-icon--analyze .script-line:nth-child(4) { width: 55%; }
+.header-icon--analyze .scan-beam {
+    position: absolute; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, transparent, #C9A84C, transparent);
+    box-shadow: 0 0 12px #C9A84C;
+    animation: scan-move 1.4s ease-in-out infinite;
+}
+.header-icon--analyze .lens-ring {
+    position: absolute; right: 4px; bottom: 4px;
+    width: 22px; height: 22px; border: 2px solid #C9A84C;
+    border-radius: 50%; animation: lens-pulse 1.4s ease-in-out infinite;
+}
+@keyframes scan-move {
+    0% { top: 0; opacity: 0.3; }
+    100% { top: calc(100% - 4px); opacity: 0.3; }
+}
+@keyframes lens-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.15); opacity: 1; }
+}
+
+.header-icon--download .dl-tray {
+    width: 40px; height: 10px; background: #4A6FA5;
+    border-radius: 0 0 6px 6px;
+    position: absolute; bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+}
+.header-icon--download .dl-tray::before,
+.header-icon--download .dl-tray::after {
+    content: ''; position: absolute; bottom: 0;
+    width: 12px; height: 12px; background: #4A6FA5;
+}
+.header-icon--download .dl-tray::before { left: -8px; transform: skewX(25deg); }
+.header-icon--download .dl-tray::after { right: -8px; transform: skewX(-25deg); }
+.header-icon--download .dl-arrow {
+    position: absolute; left: 50%; top: 8px;
+    animation: arrow-bounce 0.7s ease-in-out infinite;
+}
+.header-icon--download .dl-arrow::before {
+    content: ''; display: block; width: 0; height: 0;
+    border-left: 10px solid transparent; border-right: 10px solid transparent;
+    border-top: 14px solid #C9A84C; margin: 0 auto;
+}
+.header-icon--download .dl-arrow::after {
+    content: ''; display: block; width: 4px; height: 14px;
+    background: #C9A84C; margin: -2px auto 0;
+}
+@keyframes arrow-bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(14px); }
+}
+
+.header-icon--ready .reel {
+    width: 52px; height: 52px; border: 3px solid #C9A84C;
+    border-radius: 50%; position: absolute;
+    left: 50%; top: 50%;
+    animation: reel-spin 4s linear infinite;
+}
+.header-icon--ready .reel::before {
+    content: ''; position: absolute; inset: 10px;
+    border: 2px dashed #4A6FA5; border-radius: 50%;
+}
+.header-icon--ready .reel-hole {
+    position: absolute; width: 8px; height: 8px;
+    background: #0d1117; border: 2px solid #C9A84C; border-radius: 50%;
+}
+.header-icon--ready .reel-hole:nth-child(1) { top: 4px; left: 50%; transform: translateX(-50%); }
+.header-icon--ready .reel-hole:nth-child(2) { bottom: 4px; left: 50%; transform: translateX(-50%); }
+.header-icon--ready .reel-hole:nth-child(3) { left: 4px; top: 50%; transform: translateY(-50%); }
+.header-icon--ready .reel-hole:nth-child(4) { right: 4px; top: 50%; transform: translateY(-50%); }
+@keyframes reel-spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.header-status-label {
+    font-size: 0.7rem; color: #8b949e;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 6px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 
-def render_header():
-    st.markdown("""
+HEADER_ANIM_LABELS = {
+    'idle': 'Listo para tu guion',
+    'upload': 'Archivo recibido',
+    'analyze': 'Analizando guion…',
+    'download': 'Generando Excel…',
+    'ready': 'Desglose listo',
+}
+
+
+def _header_icon_html(anim: str) -> str:
+    if anim == 'upload':
+        body = '<div class="upload-ring"></div><div class="upload-doc"></div>'
+    elif anim == 'analyze':
+        body = (
+            '<div class="script-page">'
+            '<div class="script-line"></div>'
+            '<div class="script-line"></div>'
+            '<div class="script-line"></div>'
+            '<div class="scan-beam"></div></div>'
+            '<div class="lens-ring"></div>'
+        )
+    elif anim == 'download':
+        body = '<div class="dl-arrow"></div><div class="dl-tray"></div>'
+    elif anim == 'ready':
+        body = (
+            '<div class="reel">'
+            '<span class="reel-hole"></span><span class="reel-hole"></span>'
+            '<span class="reel-hole"></span><span class="reel-hole"></span>'
+            '</div>'
+        )
+    else:
+        body = (
+            '<div class="film-glow"></div>'
+            '<div class="clapper-top"></div>'
+            '<div class="clapper-base"></div>'
+        )
+    return (
+        f'<div class="header-icon-slot">'
+        f'<div class="header-icon-inner header-icon--{anim}">{body}</div>'
+        f'</div>'
+    )
+
+
+def get_header_animation() -> str:
+    override = st.session_state.get('header_anim')
+    if override in HEADER_ANIM_LABELS:
+        return override
+    step = st.session_state.get('step', 1)
+    if step == 2:
+        return 'analyze'
+    if step == 3:
+        return 'ready'
+    if step == 1 and st.session_state.get('pdf_bytes'):
+        return 'upload'
+    return 'idle'
+
+
+def render_header(anim=None):
+    if anim is None:
+        anim = get_header_animation()
+    icon = _header_icon_html(anim)
+    label = HEADER_ANIM_LABELS.get(anim, '')
+    st.markdown(
+        f"""
     <div class="app-header">
-        <div style="font-size:3rem;line-height:1">🎬</div>
+        {icon}
         <div>
             <h1>ScriptBreaker</h1>
             <p>Desglose automático de guiones cinematográficos y teatrales</p>
+            <div class="header-status-label">{label}</div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_sidebar_instructions(step: int):
@@ -299,6 +510,9 @@ if 'breakdown' not in st.session_state:
     st.session_state.breakdown = None
 if 'pdf_name' not in st.session_state:
     st.session_state.pdf_name = ""
+
+if st.session_state.get('pending_export'):
+    st.session_state.header_anim = 'download'
 
 
 render_header()
@@ -419,6 +633,7 @@ elif st.session_state.step == 2:
         st.session_state.personajes_p = p_p
         st.session_state.personajes_e = p_e
         st.session_state.breakdown = breakdown
+        st.session_state.pop('header_anim', None)
 
         st.session_state.step = 3
         st.rerun()
@@ -436,6 +651,31 @@ elif st.session_state.step == 3:
     p_p = st.session_state.personajes_p
     p_e = st.session_state.personajes_e
     breakdown = st.session_state.breakdown
+
+    if st.session_state.get('pending_export'):
+        char_selected = st.session_state.get('char_selected', {p: True for p in p_p})
+        personajes_sel = [p for p, v in char_selected.items() if v]
+        if personajes_sel:
+            from app.core import excel_writer
+
+            bd_filtrado = {
+                'personajes': {p: v for p, v in breakdown['personajes'].items() if p in personajes_sel},
+                'extras': breakdown.get('extras', {}),
+                'cambios': [c for c in breakdown.get('cambios', []) if c['personaje'] in personajes_sel],
+            }
+            with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp:
+                out_path = tmp.name
+            excel_writer.write_excel(bd_filtrado, out_path)
+            with open(out_path, 'rb') as f:
+                st.session_state.export_xlsx_bytes = f.read()
+            try:
+                os.unlink(out_path)
+            except OSError:
+                pass
+            st.session_state.export_filename = f"{st.session_state.pdf_name}_desglose.xlsx"
+        st.session_state.pending_export = False
+        st.session_state.header_anim = 'ready'
+        st.rerun()
 
     n_dias = len(set(e.dia_rodaje for e in escenas))
     col1, col2, col3, col4 = st.columns(4)
@@ -593,38 +833,30 @@ elif st.session_state.step == 3:
             if not personajes_sel:
                 st.warning("Selecciona al menos un personaje.")
             else:
-                with st.spinner("Generando Excel..."):
-                    from app.core import excel_writer
+                st.session_state.pending_export = True
+                st.session_state.header_anim = 'download'
+                st.rerun()
 
-                    bd_filtrado = {
-                        'personajes': {p: v for p, v in breakdown['personajes'].items() if p in personajes_sel},
-                        'extras': breakdown.get('extras', {}),
-                        'cambios': [c for c in breakdown.get('cambios', []) if c['personaje'] in personajes_sel],
-                    }
-
-                    with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp:
-                        out_path = tmp.name
-
-                    excel_writer.write_excel(bd_filtrado, out_path)
-
-                    with open(out_path, 'rb') as f:
-                        xlsx_bytes = f.read()
-                    os.unlink(out_path)
-
-                filename = f"{st.session_state.pdf_name}_desglose.xlsx"
-                st.download_button(
-                    label="📥  Descargar Excel",
-                    data=xlsx_bytes,
-                    file_name=filename,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    type="primary",
-                )
-                st.success(f"✓ Excel listo — {len(xlsx_bytes)/1024:.0f} KB")
+        if st.session_state.get('export_xlsx_bytes'):
+            xlsx_bytes = st.session_state.export_xlsx_bytes
+            filename = st.session_state.get('export_filename', 'desglose.xlsx')
+            st.download_button(
+                label="📥  Descargar Excel",
+                data=xlsx_bytes,
+                file_name=filename,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                type="primary",
+            )
+            st.success(f"✓ Excel listo — {len(xlsx_bytes)/1024:.0f} KB")
 
     with col_reset:
         st.markdown("<br><br>", unsafe_allow_html=True)
         if st.button("↩  Nuevo guion", type="secondary", key="btn_reset"):
-            for key in ['step', 'escenas', 'personajes_p', 'personajes_e', 'breakdown', 'pdf_name', 'pdf_bytes']:
+            for key in [
+                'step', 'escenas', 'personajes_p', 'personajes_e', 'breakdown',
+                'pdf_name', 'pdf_bytes', 'header_anim', 'pending_export',
+                'export_xlsx_bytes', 'export_filename',
+            ]:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
