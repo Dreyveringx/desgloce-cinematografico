@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Entorno virtual
+venv/
+env/
+.env
+.venv
+
+# PDFs y Excels de prueba (no subir datos reales)
+*.pdf
+*.xlsx
+*.xls
+test_*.xlsx
+*_desglose.xlsx
+*_output.xlsx
+
+# Archivos temporales
+*.tmp
+*.temp
+.scriptbreaker_cache/
+tmp/
+
+# PyInstaller
+dist/
+build/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Streamlit
+.streamlit/secrets.toml

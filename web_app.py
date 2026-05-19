@@ -1,11 +1,12 @@
-import os
+import streamlit as st
 import sys
+import os
 import tempfile
 import time
+from pathlib import Path
 
-import streamlit as st
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = Path(__file__).parent.resolve()
+sys.path.insert(0, str(ROOT_DIR))
 
 st.set_page_config(
     page_title="ScriptBreaker Pro",
@@ -298,7 +299,8 @@ def render_sidebar_instructions(step: int):
         st.markdown("""
         <div style="font-size:0.78rem;color:#8b949e">
             💻 <strong style="color:#e6edf3">Versión escritorio</strong><br>
-            Ejecuta <code>python main.py</code> para la app de escritorio.
+            Descarga el proyecto y ejecuta <code>install_and_run.bat</code> (Windows)
+            o <code>install_and_run.command</code> (Mac).
         </div>
         """, unsafe_allow_html=True)
 
@@ -332,6 +334,11 @@ if st.session_state.step == 1:
         )
 
         if uploaded:
+            size_mb = len(uploaded.getvalue()) / (1024 * 1024)
+            if size_mb > 50:
+                st.error(f"El PDF pesa {size_mb:.1f} MB. El límite es 50 MB.")
+                st.stop()
+
             st.session_state.pdf_bytes = uploaded.read()
             st.session_state.pdf_name = uploaded.name.replace('.pdf', '')
 
@@ -380,14 +387,23 @@ elif st.session_state.step == 2:
     try:
         from app.core import breakdown_builder, pdf_reader, script_parser
 
-        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
-            tmp.write(st.session_state.pdf_bytes)
-            tmp_path = tmp.name
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+        tmp_file.write(st.session_state.pdf_bytes)
+        tmp_file.flush()
+        tmp_file.close()
+        tmp_path = tmp_file.name
 
         status_text.markdown('<div style="color:#C9A84C;font-weight:500">Extrayendo texto del PDF...</div>', unsafe_allow_html=True)
         progress_bar.progress(10)
         time.sleep(0.3)
-        text = pdf_reader.extract_text(tmp_path)
+
+        try:
+            text = pdf_reader.extract_text(tmp_path)
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
         detail_text.markdown(f'<div style="color:#8b949e;font-size:0.82rem">{len(text):,} caracteres extraídos</div>', unsafe_allow_html=True)
 
         status_text.markdown('<div style="color:#C9A84C;font-weight:500">Detectando escenas...</div>', unsafe_allow_html=True)
@@ -421,7 +437,6 @@ elif st.session_state.step == 2:
         st.session_state.personajes_p = p_p
         st.session_state.personajes_e = p_e
         st.session_state.breakdown = breakdown
-        os.unlink(tmp_path)
 
         st.session_state.step = 3
         st.rerun()
