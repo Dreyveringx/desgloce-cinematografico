@@ -83,7 +83,7 @@ div[data-testid="stMarkdownContainer"]:has(.app-header-outer),
     background: linear-gradient(135deg, #1B3A4B 0%, #12181f 92%);
     border: 1px solid #C9A84C40;
     border-radius: 12px;
-    padding: 20px 28px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: center;
