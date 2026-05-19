@@ -1,0 +1,8 @@
+BG_MAIN = "#1a1a2e"
+BG_PANEL = "#0f3460"
+BG_CARD = "#16213e"
+ACCENT = "#f0a500"
+SUCCESS = "#27ae60"
+DANGER = "#e94560"
+TEXT_PRI = "#e0e0e0"
+TEXT_SEC = "#888888"
