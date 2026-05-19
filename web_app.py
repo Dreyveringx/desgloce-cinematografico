@@ -44,22 +44,42 @@ html, body, [class*="css"] {
     color: #C9A84C !important;
 }
 
-/* Permite que position: sticky funcione en Streamlit */
-section.main > div,
-.main .block-container,
-[data-testid="stAppViewContainer"] .main {
-    overflow: visible !important;
+/* Header fijo: siempre visible al hacer scroll (sticky no funciona bien en Streamlit) */
+.app-header-fixed {
+    position: fixed;
+    top: 0;
+    left: 21rem;
+    right: 0;
+    z-index: 1000;
+    padding: 10px 1.5rem 8px 1rem;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #0d1117 75%, rgba(13, 17, 23, 0));
+    pointer-events: none;
+}
+.app-header-fixed .app-header {
+    pointer-events: auto;
+    margin-bottom: 0;
+    max-width: 1200px;
+}
+.app-header-spacer {
+    height: 128px;
+    width: 100%;
+    display: block;
+    flex-shrink: 0;
+}
+@media (max-width: 768px) {
+    .app-header-fixed {
+        left: 0;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }
 
 .app-header {
-    position: sticky;
-    top: 0;
-    z-index: 999;
     background: linear-gradient(135deg, #1B3A4B 0%, #12181f 92%);
     border: 1px solid #C9A84C40;
     border-radius: 12px;
-    padding: 24px 40px;
-    margin-bottom: 28px;
+    padding: 20px 32px;
     display: flex;
     align-items: center;
     gap: 20px;
@@ -473,16 +493,58 @@ def render_header(anim=None):
     label = HEADER_ANIM_LABELS.get(anim, '')
     st.markdown(
         f"""
-    <div class="app-header">
-        {icon}
-        <div>
-            <h1>ScriptBreaker</h1>
-            <p>Desglose automático de guiones cinematográficos y teatrales</p>
-            <div class="header-status-label">{label}</div>
+    <div class="app-header-fixed">
+        <div class="app-header">
+            {icon}
+            <div>
+                <h1>ScriptBreaker</h1>
+                <p>Desglose automático de guiones cinematográficos y teatrales</p>
+                <div class="header-status-label">{label}</div>
+            </div>
         </div>
     </div>
+    <div class="app-header-spacer" aria-hidden="true"></div>
     """,
         unsafe_allow_html=True,
+    )
+    _align_fixed_header()
+
+
+def _align_fixed_header():
+    """Alinea el header fijo con el área principal (respeta sidebar abierta/cerrada)."""
+    import streamlit.components.v1 as components
+
+    components.html(
+        """
+        <script>
+        (function () {
+            const doc = window.parent.document;
+            function alignHeader() {
+                const bar = doc.querySelector('.app-header-fixed');
+                const main = doc.querySelector('section.main');
+                if (!bar || !main) return;
+                const r = main.getBoundingClientRect();
+                bar.style.left = r.left + 'px';
+                bar.style.width = r.width + 'px';
+                bar.style.top = '0px';
+                const spacer = doc.querySelector('.app-header-spacer');
+                if (spacer) {
+                    spacer.style.height = (bar.offsetHeight + 16) + 'px';
+                }
+            }
+            alignHeader();
+            window.parent.addEventListener('resize', alignHeader);
+            setInterval(alignHeader, 600);
+            const app = doc.querySelector('[data-testid="stAppViewContainer"]');
+            if (app) {
+                new MutationObserver(alignHeader).observe(app, {
+                    attributes: true, subtree: true, childList: true
+                });
+            }
+        })();
+        </script>
+        """,
+        height=0,
     )
 
 
