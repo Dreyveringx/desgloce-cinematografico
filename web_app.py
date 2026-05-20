@@ -8,6 +8,19 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(ROOT_DIR))
 
+
+def reset_app():
+    """Limpia todo el estado de sesión y vuelve al inicio."""
+    keys_to_clear = [
+        'step', 'escenas', 'personajes_p', 'personajes_e',
+        'breakdown', 'pdf_name', 'pdf_bytes', 'char_selected',
+        'header_anim', 'pending_export', 'export_xlsx_bytes', 'export_filename',
+    ]
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+
+
 st.set_page_config(
     page_title="ScriptBreaker",
     page_icon="🎬",
@@ -538,24 +551,60 @@ def render_sidebar_instructions(step: int):
         st.markdown("### Guía de uso")
         st.markdown("---")
         steps = [
-            ("Carga tu PDF", "Sube el guion en formato cinematográfico estándar"),
-            ("Analiza", "El sistema detecta escenas, personajes y locaciones"),
-            ("Revisa", "Selecciona los personajes que quieres incluir"),
-            ("Exporta", "Descarga el Excel de desglose de producción"),
+            ("📄", "Carga tu PDF", "Sube el guion en formato cinematográfico estándar"),
+            ("⚙️", "Analiza", "Detecta escenas, personajes y locaciones automáticamente"),
+            ("💾", "Exporta", "Descarga el Excel de desglose de producción"),
         ]
-        for i, (title, desc) in enumerate(steps, 1):
-            done = i < step
-            cls = "done" if done else ""
-            icon = "✓" if done else str(i)
+        for i, (icon, title, desc) in enumerate(steps, 1):
+            is_done = step > i
+            is_active = step == i
+
+            if is_done:
+                num_bg = "#162417"
+                num_border = "#2ea043"
+                num_color = "#3fb950"
+                num_display = "✓"
+                title_color = "#3fb950"
+                desc_color = "#3fb950"
+            elif is_active:
+                num_bg = "#1B3A4B"
+                num_border = "#C9A84C"
+                num_color = "#C9A84C"
+                num_display = str(i)
+                title_color = "#e6edf3"
+                desc_color = "#8b949e"
+            else:
+                num_bg = "#0d1117"
+                num_border = "#30363d"
+                num_color = "#555"
+                num_display = str(i)
+                title_color = "#555"
+                desc_color = "#444"
+
             st.markdown(f"""
-            <div class="step-row">
-                <div class="step-num {cls}">{icon}</div>
+            <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;
+                        border-bottom:1px solid #30363d">
+                <div style="width:28px;height:28px;background:{num_bg};
+                            border:2px solid {num_border};border-radius:50%;
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:0.78rem;font-weight:700;color:{num_color};
+                            flex-shrink:0;margin-top:1px">{num_display}</div>
                 <div>
-                    <div class="step-text {cls}" style="font-weight:600;color:{'#3fb950' if done else '#e6edf3'}">{title}</div>
-                    <div class="step-text" style="font-size:0.78rem">{desc}</div>
+                    <div style="font-weight:600;color:{title_color};
+                                font-size:0.88rem">{icon} {title}</div>
+                    <div style="font-size:0.76rem;color:{desc_color};
+                                margin-top:2px;line-height:1.4">{desc}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        if st.session_state.get('step', 1) > 1:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("↩  Nuevo guion", key="sidebar_reset", use_container_width=True):
+                reset_app()
+                st.rerun()
 
 
 if 'step' not in st.session_state:
@@ -703,10 +752,11 @@ elif st.session_state.step == 2:
         st.error(f"Error durante el análisis: {e}")
         st.code(traceback.format_exc(), language="python")
         if st.button("← Volver e intentar con otro PDF"):
-            st.session_state.step = 1
+            reset_app()
             st.rerun()
 
 elif st.session_state.step == 3:
+    # Sidebar: paso 3 activo; pasos 1 y 2 marcados como completados
     escenas = st.session_state.escenas
     p_p = st.session_state.personajes_p
     p_e = st.session_state.personajes_e
@@ -912,11 +962,5 @@ elif st.session_state.step == 3:
     with col_reset:
         st.markdown("<br><br>", unsafe_allow_html=True)
         if st.button("↩  Nuevo guion", type="secondary", key="btn_reset"):
-            for key in [
-                'step', 'escenas', 'personajes_p', 'personajes_e', 'breakdown',
-                'pdf_name', 'pdf_bytes', 'header_anim', 'pending_export',
-                'export_xlsx_bytes', 'export_filename',
-            ]:
-                if key in st.session_state:
-                    del st.session_state[key]
+            reset_app()
             st.rerun()

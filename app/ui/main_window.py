@@ -129,6 +129,20 @@ class MainWindow(ctk.CTk):
                                         justify="left")
         self.stats_label.pack(padx=14, pady=4)
 
+        self.btn_reset = ctk.CTkButton(
+            self.left,
+            text="↩  Nuevo guion",
+            height=36,
+            fg_color="transparent",
+            text_color="#8b949e",
+            hover_color="#1a1a2e",
+            border_width=1,
+            border_color="#30363d",
+            font=ctk.CTkFont(size=11),
+            command=self.reset_app,
+        )
+        self.btn_reset.pack(fill="x", padx=14, pady=(0, 6))
+
         self.btn_export = ctk.CTkButton(self.left, text="💾  Generar Excel",
                                         height=46, fg_color=SUCCESS,
                                         text_color="white", hover_color="#219a52",
@@ -161,6 +175,36 @@ class MainWindow(ctk.CTk):
         ctk.CTkLabel(self.scenes_frame,
                      text="Las escenas aparecerán aquí tras el análisis",
                      text_color=TEXT_SEC, font=ctk.CTkFont(size=12)).pack(pady=40)
+
+    def reset_app(self):
+        self.pdf_path = None
+        self.breakdown_data = None
+        self.all_escenas = []
+        self.personajes_detectados = []
+        self.char_vars = {}
+        self.file_label.configure(text="Sin archivo cargado", text_color=TEXT_SEC)
+        self.progress_bar.set(0)
+        self.progress_label.configure(text="")
+        self.stats_label.configure(text="")
+        self.btn_analyze.configure(state="disabled")
+        self.btn_export.configure(state="disabled")
+        self.analyze_hint.configure(text="Primero carga un PDF")
+        for w in self.chars_frame.winfo_children():
+            w.destroy()
+        for w in self.scenes_frame.winfo_children():
+            w.destroy()
+        ctk.CTkLabel(
+            self.chars_frame,
+            text="Carga un PDF para detectar los personajes",
+            text_color=TEXT_SEC,
+            font=ctk.CTkFont(size=12),
+        ).pack(pady=40)
+        ctk.CTkLabel(
+            self.scenes_frame,
+            text="Las escenas aparecerán aquí tras el análisis",
+            text_color=TEXT_SEC,
+            font=ctk.CTkFont(size=12),
+        ).pack(pady=40)
 
     def open_pdf(self):
         path = filedialog.askopenfilename(
