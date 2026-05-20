@@ -148,12 +148,10 @@ def _write_data_rows(ws, row_start, filas, prev_kbio=0):
         _style_cell(c, FONT_DATOS, row_fill, ALIGN_LEFT_WRAP, THIN_BORDER)
 
         chars = len(obs_text)
-        if chars > 500:
-            ws.row_dimensions[r].height = 200
-        elif chars > 350:
-            ws.row_dimensions[r].height = 150
-        elif chars > 220:
-            ws.row_dimensions[r].height = 100
+        if chars > 280:
+            ws.row_dimensions[r].height = 120
+        elif chars > 180:
+            ws.row_dimensions[r].height = 80
         elif chars > 120:
             ws.row_dimensions[r].height = 57.6
         elif chars > 60:

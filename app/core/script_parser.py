@@ -329,157 +329,162 @@ ACCIONES_PATTERNS = [
 ]
 
 
+def _is_dialogue_or_cast(sentence: str, char_name: str) -> bool:
+    """Filtra listas de elenco y líneas de diálogo del personaje."""
+    s = sentence.strip()
+    if re.match(r'^Son\s+', s, re.IGNORECASE):
+        return True
+    if re.match(r'^[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{1,28}$', s):
+        return True
+    m = re.match(rf'^{re.escape(char_name)}\s+(.+)$', s, re.IGNORECASE)
+    if not m:
+        return False
+    rest = m.group(1).strip()
+    if re.match(
+        r'^(Nos|Les|No\s+me|Lo\s+siento|Ay,|Si\s|Sí\s|Ya\s|Que\s|Curado|Después|Aguanta|Sin\s+salvo)',
+        rest,
+        re.IGNORECASE,
+    ):
+        return True
+    letters = [c for c in rest if c.isalpha()]
+    if letters and len(rest) < 1500:
+        upper_ratio = sum(c.isupper() for c in letters) / len(letters)
+        if upper_ratio > 0.72:
+            return True
+    return False
+
+
+def _sentence_mentions_char(sentence: str, char_name: str) -> bool:
+    if re.search(rf'\b{re.escape(char_name)}\b', sentence, re.IGNORECASE):
+        return True
+    if re.search(rf'\bde\s+{re.escape(char_name)}\b', sentence, re.IGNORECASE):
+        return True
+    if re.search(rf'\bdel\s+{re.escape(char_name)}\b', sentence, re.IGNORECASE):
+        return True
+    return False
+
+
+def _extract_costume_context(text: str) -> str:
+    """Frase breve de contexto (estilo Excel manual), no etiquetas."""
+    context_patterns = [
+        r'(?:cuatro|tres|varios)\s+hombres?\s+fornidos\s+vestidos?\s+de\s+polic\w+',
+        r'(?:cuatro|tres|varios)\s+hombres?\s+vestidos?\s+de\s+polic\w+',
+        r'hombres?\s+fornidos\s+vestidos?\s+de\s+polic\w+',
+        r'uniformes?\s+de\s+param[eé]dic\w+',
+        r'vestidos?\s+de\s+oficial(?:es)?\s+de\s+la\s+marina',
+        r'vestidos?\s+de\s+cura',
+        r'en\s+pijama',
+        r'con\s+sudadera',
+        r'bata\s+de\s+paciente',
+    ]
+    for pat in context_patterns:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            phrase = re.sub(r'\s+', ' ', m.group(0)).strip()
+            if len(phrase) > 12:
+                return phrase[0].upper() + phrase[1:]
+    props_snippet = re.search(
+        r'gorras?,?\s+chalecos?,?\s+esposas?,?\s+bolillos?',
+        text,
+        re.IGNORECASE,
+    )
+    if props_snippet:
+        return props_snippet.group(0)
+    return ''
+
+
+def _is_set_dressing_for_char(sentence: str, char_name: str, full_text: str) -> bool:
+    """Acotación de lugar/vestuario aunque no nombre al personaje en esa frase."""
+    if not re.search(rf'\b{re.escape(char_name)}\b', full_text, re.IGNORECASE):
+        return False
+    if re.search(rf'\bropa\s+de\s+{re.escape(char_name)}\b', sentence, re.IGNORECASE):
+        return True
+    if re.search(
+        r'\b(penthouse|apartamento|yacen sobre la cama|botas de cuero|desperdigada)\b',
+        sentence,
+        re.IGNORECASE,
+    ):
+        return True
+    return False
+
+
 def extract_character_observation(char_name: str, escena_text: str, all_char_names: list) -> str:
     """
-    Genera observación enfocada SOLO en el personaje específico.
-    Estructura: NOMBRE (edad) · VESTUARIO · PROPS · ACCIONES · frases del guion donde el personaje es sujeto
+    Observación estilo desglose manual: prosa breve del guion (sin etiquetas ·).
+    Típico: 80–350 caracteres, como el Excel de referencia Apolos.
     """
+    MAX_LEN = 300
     char_upper = char_name.upper()
     text = escena_text or ""
     text = re.sub(r'\bAPOLOS\s+\d+\b', '', text)
     text = re.sub(r'\s{3,}', ' ', text)
-    parts = []
 
-    # ── 1. NOMBRE + EDAD ──────────────────────────────────────────────────────
-    age_re = re.compile(
-        rf'\b{re.escape(char_name)}\b\s*\((\d{{1,2}})\)',
-        re.IGNORECASE
-    )
+    age_re = re.compile(rf'\b{re.escape(char_name)}\b\s*\((\d{{1,2}})\)', re.IGNORECASE)
     age_match = age_re.search(text)
     if age_match:
-        parts.append(f'{char_upper} ({age_match.group(1)} AÑOS)')
+        opener = f'{char_upper} ({age_match.group(1)} AÑOS)'
     else:
-        parts.append(char_upper)
+        opener = char_upper
 
-    # ── 2. VESTUARIO — patrones exactos sin captura de texto largo ────────────
-    VESTUARIO = [
-        (re.compile(r'vestidos?\s+de\s+(?:oficial\s+de\s+la\s+)?marina', re.I), 'DISFRAZ OFICIAL MARINA'),
-        (re.compile(r'vestidos?\s+de\s+polici[aá]s?|disfraz\s+de\s+polici', re.I), 'DISFRAZ POLICÍA'),
-        (re.compile(r'uniformes?\s+de\s+param[eé]dic', re.I), 'UNIFORME PARAMÉDICO'),
-        (re.compile(r'viste\s+de\s+cura|disfraz\s+de\s+cura', re.I), 'DISFRAZ CURA'),
-        (re.compile(r'uniformes?\s+de\s+enfermero', re.I), 'UNIFORME ENFERMERO'),
-        (re.compile(r'de\s+un\s+tir[oó]n.*?camisa|se\s+abre?\s+la\s+camisa|abre\s+su\s+camisa', re.I), 'TORSO DESNUDO'),
-        (re.compile(r'se\s+quita\s+la\s+camisa|sin\s+camisa', re.I), 'SIN CAMISA'),
-        (re.compile(r'torso\s+(?:desnudo|descubierto)', re.I), 'TORSO DESNUDO'),
-        (re.compile(r'b[oó]xer[,\s]+repleto\s+de\s+billetes|b[oó]xer.*?billete', re.I), 'BÓXER CON BILLETES'),
-        (re.compile(r'en\s+b[oó]xers?\b', re.I), 'BÓXER'),
-        (re.compile(r'\bpijama\b', re.I), 'PIJAMA'),
-        (re.compile(r'\bsudadera\b', re.I), 'SUDADERA'),
-        (re.compile(r'bata\s+de\s+paciente', re.I), 'BATA PACIENTE'),
-        (re.compile(r'\bchaqueta\b', re.I), 'CHAQUETA'),
-        (re.compile(r'\bchaleco\b(?!\s+antibalas)', re.I), 'CHALECO'),
-        (re.compile(r'\brodillera\b', re.I), 'RODILLERA'),
-        (re.compile(r'vestido\s+muy\s+elegante|traje\s+elegante|muy\s+bien\s+vestido', re.I), 'TRAJE ELEGANTE'),
-        (re.compile(r'vestida?\s+en\s+cuero', re.I), 'CUERO'),
-        (re.compile(r'uniforme[s]?\s+(?:de\s+)?(?:oficial|marinero)', re.I), 'UNIFORME OFICIAL'),
-        (re.compile(r'reci[eé]n\s+afeitado\s+y\s+mejor\s+vestido', re.I), 'BIEN VESTIDO'),
-    ]
+    context = _extract_costume_context(text)
+    if context and context.lower() not in opener.lower():
+        opener = f'{opener}, {context}'
 
-    vestuario_encontrado = []
-    for pattern, label in VESTUARIO:
-        if pattern.search(text) and label not in vestuario_encontrado:
-            vestuario_encontrado.append(label)
-    parts.extend(vestuario_encontrado[:3])
-
-    def char_uses_prop(prop_re, text, char_name, window=300):
-        """Verifica que el prop aparezca cerca de una mención del personaje."""
-        prop_match = prop_re.search(text)
-        if not prop_match:
-            return False
-        prop_pos = prop_match.start()
-        nearby_text = text[max(0, prop_pos - window): prop_pos + 100]
-        return bool(re.search(rf'\b{re.escape(char_name)}\b', nearby_text, re.IGNORECASE))
-
-    PROPS = [
-        (re.compile(r'meg[aá]fono', re.I), 'megáfono'),
-        (re.compile(r'micr[oó]fono', re.I), 'micrófono'),
-        (re.compile(r'jeringa', re.I), 'jeringa en rodilla'),
-        (re.compile(r'estetoscopio', re.I), 'estetoscopio'),
-        (re.compile(r'fumigadora', re.I), 'fumigadora'),
-        (re.compile(r'pistola\b|\barma\b', re.I), 'arma'),
-        (re.compile(r'\bcelular\b', re.I), 'celular'),
-        (re.compile(r'sobre.*?billete|toma\s+un\s+sobre', re.I), 'sobre con billetes'),
-        (re.compile(r'copa\s+de\s+aguardiente|copa.*?aguardiente|media\s+de\s+aguardiente|sorbo\s+de\s+aguardiente', re.I), 'copa aguardiente'),
-        (re.compile(r'\bbotella\b', re.I), 'botella'),
-        (re.compile(r'maletín|maleta\b', re.I), 'maletín'),
-        (re.compile(r'silla\s+de\s+ruedas', re.I), 'silla de ruedas'),
-        (re.compile(r'carpeta\s+m[eé]dica|incapacidad\b', re.I), 'carpeta médica'),
-        (re.compile(r'mancuernas?', re.I), 'mancuernas'),
-        (re.compile(r'casco\b', re.I), 'casco moto'),
-    ]
-
-    props_encontrados = []
-    for pattern, label in PROPS:
-        if char_uses_prop(pattern, text, char_name) and label not in props_encontrados:
-            props_encontrados.append(label)
-    parts.extend(props_encontrados[:3])
-
-    def char_does_action(verb_re, text, char_name):
-        """Verifica que el verbo aparezca en la misma oración que el personaje."""
-        oraciones = re.split(r'(?<=[.!?\n])\s*', text)
-        for oracion in oraciones:
-            if re.search(rf'\b{re.escape(char_name)}\b', oracion, re.IGNORECASE):
-                if verb_re.search(oracion):
-                    return True
-        return False
-
-    ACCIONES = [
-        (re.compile(r'\bcojea\b|cojeando', re.I), 'COJEA'),
-        (re.compile(r'\bbaila\b|bailando', re.I), 'BAILA'),
-        (re.compile(r'\bllora\b|llorando', re.I), 'LLORA'),
-        (re.compile(r'\bsangra\b|sangrando', re.I), 'SANGRA'),
-        (re.compile(r'\bgolpea\b', re.I), 'GOLPEA'),
-        (re.compile(r'\bduerme\b|durmiendo', re.I), 'DUERME'),
-        (re.compile(r'\bfuma\b|fumando', re.I), 'FUMA'),
-        (re.compile(r'\bdispara\b', re.I), 'DISPARA'),
-        (re.compile(r'\bcorre\b|corriendo', re.I), 'CORRE'),
-        (re.compile(r'se\s+arrodilla|arrodillándose', re.I), 'SE ARRODILLA'),
-        (re.compile(r'susurra\b', re.I), 'SUSURRA AL OÍDO'),
-        (re.compile(r'se\s+desmaya|desmayándose', re.I), 'SE DESMAYA'),
-        (re.compile(r'aprieta\s+los\s+dientes', re.I), 'APRIETA DIENTES'),
-    ]
-
-    acciones_encontradas = []
-    for pattern, label in ACCIONES:
-        if char_does_action(pattern, text, char_name) and label not in acciones_encontradas:
-            acciones_encontradas.append(label)
-    parts.extend(acciones_encontradas[:3])
+    max_frases = 2 if len(opener) < 20 and ',' not in opener else 3
 
     oraciones_raw = re.split(r'(?<=[.!?])\s+|\n{2,}', text)
-    oraciones = []
-    for o in oraciones_raw:
-        o_clean = re.sub(r'\s+', ' ', o).strip()
-        if re.match(r'^[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]{1,25}$', o_clean):
+    candidatas = []
+    seen = set()
+    for raw in oraciones_raw:
+        frase = re.sub(r'\s+', ' ', raw).strip()
+        if len(frase) < 15 or frase in seen:
             continue
-        if re.match(r'^APOLOS\s+\d+\s*$', o_clean):
+        if re.match(r'^APOLOS\s*$', frase, re.IGNORECASE):
             continue
-        if len(o_clean) > 5:
-            oraciones.append(o_clean)
+        relevante = _sentence_mentions_char(frase, char_name) or _is_set_dressing_for_char(
+            frase, char_name, text
+        )
+        if not relevante:
+            pos = text.lower().find(frase.lower())
+            if pos > 0 and re.search(
+                r'\b(toma un sobre|cuenta|se va|se pone|se quita|sostiene)\b', frase, re.IGNORECASE
+            ):
+                ventana = text[max(0, pos - 350):pos]
+                if re.search(rf'\b{re.escape(char_name)}\b', ventana, re.IGNORECASE):
+                    relevante = True
+        if not relevante:
+            continue
+        if _is_dialogue_or_cast(frase, char_name):
+            continue
+        if re.match(r'^Un camerino\b', frase, re.IGNORECASE) and not re.search(
+            rf'\b{re.escape(char_name)}\b', frase, re.IGNORECASE
+        ):
+            continue
+        seen.add(frase)
+        pos = text.lower().find(frase.lower())
+        candidatas.append((pos if pos >= 0 else 99999, frase))
 
-    frases_del_personaje = []
-    for oracion in oraciones:
-        if re.search(rf'\b{re.escape(char_name)}\b', oracion, re.IGNORECASE):
-            oracion_limpia = oracion
-            for otro in all_char_names:
-                if otro.upper() != char_upper:
-                    oracion_limpia = re.sub(
-                        rf'\b{re.escape(otro)}\b\s*\([^)]*\)?\s*\n\s+[^\n]+',
-                        '', oracion_limpia, flags=re.IGNORECASE
-                    )
-            oracion_limpia = re.sub(r'\s+', ' ', oracion_limpia).strip()
-            if len(oracion_limpia) > 20:
-                frases_del_personaje.append(oracion_limpia)
+    candidatas.sort(key=lambda x: x[0])
 
-    texto_final = ''
-    for frase in frases_del_personaje[:8]:
-        if len(texto_final) + len(frase) + 2 <= 600:
-            texto_final += frase + ' '
-        else:
-            if not texto_final:
-                texto_final = frase[:580] + '...'
+    cuerpo = ''
+    n_frases = 0
+    for _, frase in candidatas:
+        if n_frases >= max_frases:
             break
+        sep = '. ' if cuerpo or not opener.endswith('.') else ' '
+        if len(opener) + len(cuerpo) + len(sep) + len(frase) > MAX_LEN:
+            if not cuerpo:
+                espacio = MAX_LEN - len(opener) - len(sep) - 3
+                if espacio > 35:
+                    cuerpo += sep + frase[:espacio].rstrip() + '...'
+                    n_frases += 1
+            break
+        cuerpo += sep + frase
+        n_frases += 1
 
-    if texto_final.strip():
-        parts.append(texto_final.strip())
-
-    return ' · '.join(p for p in parts if p and str(p).strip())
+    resultado = (opener + cuerpo).strip()
+    resultado = re.sub(r'\s+', ' ', resultado)
+    resultado = re.sub(r'\.{2,}', '.', resultado)
+    if len(resultado) > MAX_LEN:
+        resultado = resultado[: MAX_LEN - 3].rstrip() + '...'
+    return resultado
